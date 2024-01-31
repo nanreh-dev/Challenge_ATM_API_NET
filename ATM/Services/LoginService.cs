@@ -1,7 +1,5 @@
 ﻿using ATM.Interfaces;
-using ATM.Models;
 using ATM.Models.CustomModels;
-using Microsoft.EntityFrameworkCore;
 
 namespace ATM.Services
 {

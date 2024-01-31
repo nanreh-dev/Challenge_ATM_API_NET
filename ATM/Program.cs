@@ -39,7 +39,7 @@ builder.Services.AddSwaggerGen(opt =>
                     Id="Bearer"
                 }
             },
-            new string[]{}
+            Array.Empty<string>()
         }
     });
 });
@@ -122,12 +122,13 @@ app.MapPost("/saldo", async (HttpContext ctx, ITransactionService _transactionSe
             //compruebo que no sea null y aunq tenga token no este bloqueado
             if (user == null)
             {
-                ctx.Response.StatusCode = 400;
+                ctx.Response.StatusCode = StatusCodes.Status404NotFound;
                 await ctx.Response.WriteAsJsonAsync(new { Error = Constants.Errors.NO_CARD });
                 return;
             }
             else if (!user.Enabled)
             {
+                ctx.Response.StatusCode = StatusCodes.Status203NonAuthoritative;
                 await ctx.Response.WriteAsJsonAsync(new { Error = Constants.Errors.CARD_BLOQUED });
                 return;
             }
@@ -139,7 +140,7 @@ app.MapPost("/saldo", async (HttpContext ctx, ITransactionService _transactionSe
                 return;
             }
         }
-        ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+        ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
         await ctx.Response.WriteAsJsonAsync(new { Error = Constants.Errors.TRANSACTION_ERROR });
     }
     catch (Exception ex)
@@ -148,7 +149,7 @@ app.MapPost("/saldo", async (HttpContext ctx, ITransactionService _transactionSe
     }
 }).RequireAuthorization();
 
-app.MapPost("/deposito/{cantidad}", async (decimal cantidad, HttpContext ctx,ITransactionService _transactionService, IUserService _userService) =>
+app.MapPost("/deposito/{cantidad}", async (decimal cantidad, HttpContext ctx, ITransactionService _transactionService, IUserService _userService) =>
 {
     try
     {
@@ -156,20 +157,19 @@ app.MapPost("/deposito/{cantidad}", async (decimal cantidad, HttpContext ctx,ITr
 
         if (identity != null)
         {
-            //obtengo el numero de tarjeta en el token
             string cardNumber = identity.Claims.First().Value;
 
             var user = _userService.Get(cardNumber);
 
-            //compruebo que no sea null y aunq tenga token no este bloqueado
             if (user == null)
             {
-                ctx.Response.StatusCode = 400;
+                ctx.Response.StatusCode = StatusCodes.Status404NotFound;
                 await ctx.Response.WriteAsJsonAsync(new { Error = Constants.Errors.NO_CARD });
                 return;
             }
-            else if(!user.Enabled)
+            else if (!user.Enabled)
             {
+                ctx.Response.StatusCode = StatusCodes.Status203NonAuthoritative;
                 await ctx.Response.WriteAsJsonAsync(new { Error = Constants.Errors.CARD_BLOQUED });
                 return;
             }
@@ -198,20 +198,19 @@ app.MapPost("/extraccion/{cantidad}", async (decimal cantidad, HttpContext ctx, 
 
         if (identity != null)
         {
-            //obtengo el numero de tarjeta en el token
             string cardNumber = identity.Claims.First().Value;
 
             var user = _userService.Get(cardNumber);
 
-            //compruebo que no sea null y aunq tenga token no este bloqueado
             if (user == null)
             {
-                ctx.Response.StatusCode = 400;
+                ctx.Response.StatusCode = StatusCodes.Status404NotFound;
                 await ctx.Response.WriteAsJsonAsync(new { Error = Constants.Errors.NO_CARD });
                 return;
             }
             else if (!user.Enabled)
             {
+                ctx.Response.StatusCode = StatusCodes.Status203NonAuthoritative;
                 await ctx.Response.WriteAsJsonAsync(new { Error = Constants.Errors.CARD_BLOQUED });
                 return;
             }
@@ -231,6 +230,39 @@ app.MapPost("/extraccion/{cantidad}", async (decimal cantidad, HttpContext ctx, 
         throw new Exception("Error: " + ex.Message);
     }
 
+}).RequireAuthorization();
+
+app.MapGet("/movimientos/{pagina}", async (string pagina, HttpContext ctx, IUserService _userService, ITransactionService _transactionService) =>
+{
+    var identity = ctx.User.Identity as ClaimsIdentity;
+
+    if (identity != null)
+    {
+        string cardNumber = identity.Claims.First().Value;
+
+        var user = _userService.Get(cardNumber);
+
+        if (user == null)
+        {
+            ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+            await ctx.Response.WriteAsJsonAsync(new { Error = Constants.Errors.NO_CARD });
+            return;
+        }
+        else if (!user.Enabled)
+        {
+            ctx.Response.StatusCode = StatusCodes.Status203NonAuthoritative;
+            await ctx.Response.WriteAsJsonAsync(new { Error = Constants.Errors.CARD_BLOQUED });
+            return;
+        }
+        else
+        {
+            var movements = _transactionService.GetMovements(pagina, user);
+            await ctx.Response.WriteAsJsonAsync(new { Movements = movements });
+            return;
+        }
+    }
+    ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+    await ctx.Response.WriteAsJsonAsync(new { Error = Constants.Errors.TRANSACTION_ERROR });
 }).RequireAuthorization();
 
 app.Run();

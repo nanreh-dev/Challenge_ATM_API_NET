@@ -20,7 +20,7 @@ namespace ATM.Services
             return _context.Transactions.Where(y => y.UserId == userId).OrderByDescending(x => x.IdTransaction).FirstOrDefault();
         }
 
-        public TransactionResult GetSaldo(string cardNumber)
+        public TransactionResult GetSaldo(string cardNumber) //wtf is saldo in english
         {
             var user = _userService.Get(cardNumber);
 
@@ -104,6 +104,66 @@ namespace ATM.Services
 
             return new TransactionResult() { Success = true, Name = user.Name, CardNumber = cardNumber, Date = DateTime.Now.ToString("dd/MM/yyyy hh:mm tt"), Type = GetTransactionDescription(type), Amount = newAmount };
 
+        }
+
+        public PaginationModel GetMovements(string page, User user)
+        {
+            // Calculo el numero de registros en la db -> numero de paginas
+            var itemsCount = _context.Transactions.Where(x => x.UserId == user.Id).Count();
+
+            if (itemsCount > 0)
+            {
+                var pageSize = 10;
+                var totalPages = Math.Ceiling(((decimal)itemsCount / (decimal)pageSize));
+
+                if(int.Parse(page) > totalPages)
+                {
+                    return new PaginationModel()
+                    {
+                        Success = false,
+                        Name = user.Name,
+                        CardNumber = user.CardNumber.Trim(),
+                        TotalPages = (int)totalPages,
+                        RequestedPage = int.Parse(page),
+                        Message = Constants.Errors.WRONG_PAGE
+                    };
+                }
+
+                var items = _context.Transactions
+                .Where(x => x.UserId == user.Id)
+                .OrderBy(x => x.Date)
+                .Skip((int.Parse(page) - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+                List<TransactionsResults> movements = new();
+                foreach (var item in items)
+                {
+                    movements.Add(
+                        new TransactionsResults() { Date = item.Date.ToString("dd/MM/yyyy hh:mm tt"), Type = GetTransactionDescription(item.Type), Amount = item.Amount });
+                }
+
+                return new PaginationModel()
+                {
+                    Success = true,
+                    Name = user.Name,
+                    CardNumber = user.CardNumber.Trim(),
+                    TotalPages = (int)totalPages,
+                    RequestedPage = int.Parse(page),
+                    Movements = movements
+                };
+            }
+            
+
+            return new PaginationModel()
+            {
+                Success = false,
+                Name = user.Name,
+                CardNumber = user.CardNumber.Trim(),
+                TotalPages = 0,
+                RequestedPage = int.Parse(page),
+                Message = Constants.Errors.NO_MOVEMENTS
+            };
         }
 
         string GetTransactionDescription(byte type)

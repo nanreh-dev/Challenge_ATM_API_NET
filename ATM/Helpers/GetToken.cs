@@ -8,6 +8,7 @@ namespace ATM.Helpers
 {
     public class GetToken
     {
+        //duracionn del token
         private static TimeSpan ExpiryDuration = new TimeSpan(3, 0, 0);
         public static string Get(string key, string issuer, LoginModel card)
         {

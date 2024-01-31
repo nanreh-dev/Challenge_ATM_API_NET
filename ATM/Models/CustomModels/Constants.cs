@@ -16,6 +16,7 @@
             public const string TRANSACTION_ERROR = "Error en la transacción. Intente nuevamente.";
             public const string NO_MONEY = "Saldo Insuficiente.";
             public const string NO_MOVEMENTS = "Cuenta sin movimientos.";
+            public const string WRONG_PAGE = "Página inexistente.";
         }
 
     }

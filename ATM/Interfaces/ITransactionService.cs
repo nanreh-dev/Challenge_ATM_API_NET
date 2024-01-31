@@ -8,5 +8,6 @@ namespace ATM.Interfaces
         TransactionResult Transactions(string card, byte type, decimal amount);
         Transaction? Get(int userId);
         TransactionResult GetSaldo(string cardNumber);
+        PaginationModel GetMovements(string page, User user);
     }
 }
