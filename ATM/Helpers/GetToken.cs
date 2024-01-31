@@ -11,7 +11,9 @@ namespace ATM.Helpers
         //duracionn del token
         private static TimeSpan ExpiryDuration = new TimeSpan(3, 0, 0);
         public static string Get(string key, string issuer, LoginModel card)
-        {
+        {   
+            if (card.Card == null) return string.Empty;
+
             var claims = new[]
             {
                 new Claim(ClaimTypes.UserData, card.Card),

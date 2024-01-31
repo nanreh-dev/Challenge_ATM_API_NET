@@ -106,7 +106,7 @@ app.MapPost("/login", async (HttpContext ctx, LoginModel model, ILoginService _l
     }
 });
 
-app.MapPost("/saldo", async (HttpContext ctx, ITransactionService _transactionService, IUserService _userService) =>
+app.MapGet("/saldo", async (HttpContext ctx, ITransactionService _transactionService, IUserService _userService) =>
 {
     try
     {
@@ -149,7 +149,7 @@ app.MapPost("/saldo", async (HttpContext ctx, ITransactionService _transactionSe
     }
 }).RequireAuthorization();
 
-app.MapPost("/deposito/{cantidad}", async (decimal cantidad, HttpContext ctx, ITransactionService _transactionService, IUserService _userService) =>
+app.MapPut("/deposito/{cantidad}", async (decimal cantidad, HttpContext ctx, ITransactionService _transactionService, IUserService _userService) =>
 {
     try
     {
@@ -190,7 +190,7 @@ app.MapPost("/deposito/{cantidad}", async (decimal cantidad, HttpContext ctx, IT
     }
 }).RequireAuthorization();
 
-app.MapPost("/extraccion/{cantidad}", async (decimal cantidad, HttpContext ctx, ITransactionService _transactionService, IUserService _userService) =>
+app.MapPut("/extraccion/{cantidad}", async (decimal cantidad, HttpContext ctx, ITransactionService _transactionService, IUserService _userService) =>
 {
     try
     {

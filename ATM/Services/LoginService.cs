@@ -14,7 +14,9 @@ namespace ATM.Services
 
         public LoginResult CheckCard(LoginModel model)
         {
-            //TO DO model.card == null -> badRequest
+            if(model.Card == null)
+                return new LoginResult() { Success = false, Error = Constants.Errors.NO_CARD };
+
             var user =  _userService.Get(model.Card);
 
             if (user == null)

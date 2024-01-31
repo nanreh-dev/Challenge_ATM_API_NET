@@ -1,6 +1,7 @@
 ﻿using ATM.Interfaces;
 using ATM.Models;
 using ATM.Models.CustomModels;
+using System.Linq;
 
 namespace ATM.Services
 {
@@ -113,8 +114,7 @@ namespace ATM.Services
 
             if (itemsCount > 0)
             {
-                var pageSize = 10;
-                var totalPages = Math.Ceiling(((decimal)itemsCount / (decimal)pageSize));
+                var totalPages = Math.Ceiling(((decimal)itemsCount / Constants.General.PAGE_SIZE));
 
                 if(int.Parse(page) > totalPages)
                 {
@@ -131,9 +131,9 @@ namespace ATM.Services
 
                 var items = _context.Transactions
                 .Where(x => x.UserId == user.Id)
-                .OrderBy(x => x.Date)
-                .Skip((int.Parse(page) - 1) * pageSize)
-                .Take(pageSize)
+                .OrderByDescending(x => x.Date)
+                .Skip((int.Parse(page) - 1) * (int)Constants.General.PAGE_SIZE)
+                .Take((int)Constants.General.PAGE_SIZE)
                 .ToList();
 
                 List<TransactionsResults> movements = new();
@@ -168,7 +168,9 @@ namespace ATM.Services
 
         string GetTransactionDescription(byte type)
         {
-            return _context.TransactionTypes.Where(x => x.IdType == type).FirstOrDefault().Description.Trim();
+            var transactionType = _context.TransactionTypes.Where(x => x.IdType == type).FirstOrDefault();
+
+            return transactionType == null ? string.Empty : transactionType.Description.Trim();
         }
     }
 }

@@ -18,6 +18,9 @@
             public const string NO_MOVEMENTS = "Cuenta sin movimientos.";
             public const string WRONG_PAGE = "Página inexistente.";
         }
-
+        public struct General
+        {
+            public const decimal PAGE_SIZE = 10;
+        }
     }
 }

@@ -17,7 +17,8 @@ namespace ATM.Services
         {
             try
             {
-                return _context.Users.Where(x => x.CardNumber == cardNumber).FirstOrDefault();
+                var user =  _context.Users.Where(x => x.CardNumber == cardNumber).FirstOrDefault();
+                return user ?? new User();
             }
             catch (Exception ex)
             {
@@ -28,28 +29,33 @@ namespace ATM.Services
         public void UpdateWrongPin(int id)
         {
             var user = _context.Users.FirstOrDefault(x => x.Id == id);
-            user.WrongPin = (byte?)(user.WrongPin + 1);
-
-            _context.Entry(user).State = EntityState.Modified;
-            var state = _context.SaveChanges();
-
-            if (state == 0)
+            if(user != null)
             {
-                throw new Exception("Error al actualizar PIN.");
+                user.WrongPin = (byte?)(user.WrongPin + 1);
+
+                _context.Entry(user).State = EntityState.Modified;
+                var state = _context.SaveChanges();
+
+                if (state == 0)
+                {
+                    throw new Exception("Error al actualizar PIN.");
+                }
             }
         }
 
         public void BlockCard(int id)
         {
             var user = _context.Users.FirstOrDefault(x => x.Id == id);
-            user.Enabled = false;
-
-            _context.Entry(user).State = EntityState.Modified;
-            var state = _context.SaveChanges();
-
-            if (state == 0)
+            if(user != null)
             {
-                throw new Exception("Error al bloquear la tarjeta.");
+                user.Enabled = false;
+
+                _context.Entry(user).State = EntityState.Modified;
+                var state = _context.SaveChanges();
+                if (state == 0)
+                {
+                    throw new Exception("Error al bloquear la tarjeta.");
+                }
             }
         }
     }
